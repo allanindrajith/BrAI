@@ -1,0 +1,7 @@
+{
+  "name": "BrAI - Cognitive Optimization System",
+  "description": "A neuro-adaptive system that monitors EEG signals to detect cognitive load, stress levels, and provide actionable productivity insights.",
+  "requestFramePermissions": [
+    "bluetooth"
+  ]
+}

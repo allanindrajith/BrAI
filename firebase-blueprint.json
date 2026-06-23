@@ -1,0 +1,68 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user profile and settings.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "reminderSettings": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "intervalMinutes": { "type": "number" }
+          }
+        }
+      },
+      "required": ["uid", "email"]
+    },
+    "EEGReading": {
+      "title": "EEG Reading",
+      "description": "A single point of EEG data.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "alpha": { "type": "number", "description": "Relaxation level" },
+        "beta": { "type": "number", "description": "Focus level" },
+        "theta": { "type": "number", "description": "Fatigue level" },
+        "stressLevel": { "type": "number", "description": "Calculated stress (0-100)" },
+        "cognitiveLoad": { "type": "number", "description": "Calculated load (0-100)" },
+        "mood": { "type": "string", "description": "User logged mood", "enum": ["Focused", "Tired", "Stressed", "Calm", "None"] },
+        "notes": { "type": "string", "description": "Optional notes for the entry" }
+      },
+      "required": ["userId", "timestamp", "alpha", "beta", "theta"]
+    },
+    "Recommendation": {
+      "title": "Recommendation",
+      "description": "System generated recommendation for the user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "type": { "type": "string", "enum": ["REST", "FOCUS", "STRETCH"] },
+        "message": { "type": "string" },
+        "read": { "type": "boolean" }
+      },
+      "required": ["userId", "timestamp", "type", "message"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile documents"
+    },
+    "/users/{userId}/readings/{readingId}": {
+      "schema": "EEGReading",
+      "description": "Historical EEG data for a user"
+    },
+    "/users/{userId}/recommendations/{recId}": {
+      "schema": "Recommendation",
+      "description": "System recommendations for a user"
+    }
+  }
+}

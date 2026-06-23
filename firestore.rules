@@ -1,0 +1,62 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: /users/{userId}
+    // Fields: uid, email, displayName, photoURL, createdAt
+    //
+    // Collection: /users/{userId}/readings/{readingId}
+    // Fields: userId, timestamp, alpha, beta, theta, stressLevel, cognitiveLoad
+    //
+    // Collection: /users/{userId}/recommendations/{recId}
+    // Fields: userId, timestamp, type, message, read
+    //
+    // ===============================================================
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // User Profile Validation
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email']) &&
+             data.uid is string &&
+             data.email is string &&
+             (!('reminderSettings' in data) || data.reminderSettings is map);
+    }
+
+    // EEG Reading Validation
+    function isValidReading(data) {
+      return data.keys().hasAll(['userId', 'timestamp', 'alpha', 'beta', 'theta']) &&
+             data.userId == request.auth.uid &&
+             data.alpha is number &&
+             data.beta is number &&
+             data.theta is number &&
+             (!('mood' in data) || data.mood is string) &&
+             (!('notes' in data) || data.notes is string);
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data);
+      allow update: if isOwner(userId) && isValidUser(request.resource.data);
+
+      match /readings/{readingId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidReading(request.resource.data);
+      }
+
+      match /recommendations/{recId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId);
+      }
+    }
+  }
+}
